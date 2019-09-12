@@ -1,0 +1,102 @@
+---
+title: "Mushroom"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r load_packages, include= FALSE}
+library(rpart)
+library(rpart.plot)
+library(tree)
+library(randomForest)
+library(caTools)
+library(caret)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(data.table)
+library(ggplot2)
+```
+
+## Including Plots
+
+
+```{r pressure, echo=TRUE}
+mushroom_data <- read.csv("mushrooms.csv")
+
+```
+
+
+
+```{r plot code, echo = TRUE}
+summary(mushroom_data)
+poop <- cbind.data.frame(Var = names(mushroom_data), total = sapply(mushroom_data, function(x){as.numeric(length(levels(x)))}))
+print(poop)
+##veil type seems to be only 1 so we can drop
+mushroom_data$veil.type <- NULL
+
+##Cleaning Data
+#splitting into training and test sets
+n <- nrow(mushroom_data)
+n_train <- round(0.8*n)
+set.seed(123)
+train_indices <- sample(1:n, n_train)
+mushroom_train <- mushroom_data[train_indices,]
+mushroom_test <- mushroom_data[-train_indices,]
+y_train <- mushroom_train$class
+y_test <- mushroom_test$class
+x_train <- mushroom_train
+x_test <- mushroom_test
+x_test$class <- NULL
+x_train$class <- NULL
+
+#modelling
+
+#multifold 
+
+
+# Create a stratified sample for repeated cv
+cv.10.folds<-createMultiFolds(y_train,k=10,times=2)
+
+# create a control object for repeated cv in caret
+ctrl.1<-trainControl(method="repeatedcv",number=10,repeats=2,index=cv.10.folds)
+
+rf.1.cv<-train(x=x_train,y=y_train,method="rf",trControl=ctrl.1,tuneLength=3)
+
+plot(varImp(rf.1.cv),main="Random Forest - Variable Importance Plot")
+
+# shows 100% accuracy, lets predict on test set
+
+y_predicted<-predict(rf.1.cv,x_test)
+
+df1<-data.frame(Orig=y_test,Pred=y_predicted)
+
+confusionMatrix(table(df1$Orig,df1$Pred)) 
+
+#__________________________________________________
+mushroom_model <- rpart(formula = class ~ ., data = mushroom_train)
+rpart.plot(x = mushroom_model$finalModel)
+
+cv.10.folds<-createMultiFolds(mushroom_train$class,k=10,times=2)
+ctrl.1<-trainControl(method="repeatedcv",number=10,repeats=2,index=cv.10.folds)
+mushroom_modelC <- train(x = mushroom_train, y = mushroom_train$class, method = "rpart", trControl = ctrl.1, tuneLength = 5)
+plot(varImp(mushroom_modelC),main="RPART - Variable Importance Plot")
+rpart.plot(mushroom_modelC$finalModel)
+```
+
+
+
+
+
+
+
