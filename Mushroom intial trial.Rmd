@@ -1,17 +1,14 @@
 ---
 title: "Mushroom"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+##Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Hello, this is my first real project that looks at [mushroom edibility data](https://www.kaggle.com/uciml/mushroom-classification/downloads/mushroom-classification.zip/1) from Kraggle. mushroom edibilty was deteremined from a multitude of factors provided in the data. Detailed descriptions of the data variables can be found on Kraggle. 
 
 ```{r load_packages, include= FALSE}
 library(rpart)
@@ -28,20 +25,20 @@ library(data.table)
 library(ggplot2)
 ```
 
-## Including Plots
+## I installed the relevant packages needed, but the code has been omitted. 
 
 
-```{r pressure, echo=TRUE}
+```{r pressure, include = FALSE}
 mushroom_data <- read.csv("mushrooms.csv")
 
 ```
 
 
 
-```{r plot code, echo = TRUE}
+```{r plot code, include = TRUE}
 summary(mushroom_data)
-poop <- cbind.data.frame(Var = names(mushroom_data), total = sapply(mushroom_data, function(x){as.numeric(length(levels(x)))}))
-print(poop)
+placeholder <- cbind.data.frame(Var = names(mushroom_data), total = sapply(mushroom_data, function(x){as.numeric(length(levels(x)))}))
+print(placeholder)
 ##veil type seems to be only 1 so we can drop
 mushroom_data$veil.type <- NULL
 
@@ -53,25 +50,21 @@ set.seed(123)
 train_indices <- sample(1:n, n_train)
 mushroom_train <- mushroom_data[train_indices,]
 mushroom_test <- mushroom_data[-train_indices,]
-y_train <- mushroom_train$class
-y_test <- mushroom_test$class
 x_train <- mushroom_train
 x_test <- mushroom_test
 x_test$class <- NULL
 x_train$class <- NULL
 
-#modelling
 
-#multifold 
-
-
-# Create a stratified sample for repeated cv
-cv.10.folds<-createMultiFolds(y_train,k=10,times=2)
+# Create a stratified sample for repeated cv using multifolded
+cv.10.folds<-createMultiFolds(mushroom_train$class,k=10,times=2)
 
 # create a control object for repeated cv in caret
 ctrl.1<-trainControl(method="repeatedcv",number=10,repeats=2,index=cv.10.folds)
 
-rf.1.cv<-train(x=x_train,y=y_train,method="rf",trControl=ctrl.1,tuneLength=3)
+rf.1.cv<-train(x=x_train,y=mushroom_train$class,method="rf",trControl=ctrl.1,tuneLength=3)
+
+#variable importance using Random Forest
 
 plot(varImp(rf.1.cv),main="Random Forest - Variable Importance Plot")
 
@@ -79,22 +72,22 @@ plot(varImp(rf.1.cv),main="Random Forest - Variable Importance Plot")
 
 y_predicted<-predict(rf.1.cv,x_test)
 
-df1<-data.frame(Orig=y_test,Pred=y_predicted)
+df1<-data.frame(Orig=mushroom_test$class,Pred=y_predicted)
 
 confusionMatrix(table(df1$Orig,df1$Pred)) 
 
 #__________________________________________________
-mushroom_model <- rpart(formula = class ~ ., data = mushroom_train)
-rpart.plot(x = mushroom_model$finalModel)
 
 cv.10.folds<-createMultiFolds(mushroom_train$class,k=10,times=2)
 ctrl.1<-trainControl(method="repeatedcv",number=10,repeats=2,index=cv.10.folds)
-mushroom_modelC <- train(x = mushroom_train, y = mushroom_train$class, method = "rpart", trControl = ctrl.1, tuneLength = 5)
+mushroom_modelC <- train(x = x_train, y = mushroom_train$class, method = "rpart", trControl = ctrl.1, tuneLength = 5)
+#looking at variable importannce using RPART
 plot(varImp(mushroom_modelC),main="RPART - Variable Importance Plot")
 rpart.plot(mushroom_modelC$finalModel)
 ```
 
-
+##Results
+The results from this random forest method and RPART showed us a 100% accuracy rating in predicting mushroom edibility from their factors. We can see the variable imporatance as shown by the graphs are identical in identifying that odor was the most important in determining the edibility of the mushroom followed by spore.print.color and gill. The decision tree is also given to show the factors as we move down the tree to determine edibility of mushrooms. The confusion matrix provided shows us the accuracy rating as mentioned before as all mushrooms that are edible are classified properly as edible and similarly for mushrooms that inedible. 
 
 
 
