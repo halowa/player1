@@ -64,7 +64,10 @@ class(irish1edit$publish_date)
 
 irish1edit1 <- irish1edit
 irish1edit1$publish_date <-format(irish1edit1$publish_date, format = "%Y-%m")
-irish1edit1 %>% group_by(publish_date, cat) %>% count() %>% ggplot(aes(x = publish_date, y = n , color =cat)) + geom_line()
+head(irish1edit1)
+irish1edit1 %>% group_by(publish_date, cat) %>% count() -> irish_data_cleaned
+head(irish_data_cleaned)
+irish_data_cleaned %>% ggplot(aes(x = publish_date, y = n , color =cat)) + geom_line() + geom_point()
 ```
 ##Results
 Here we can see the overal summary of the data. By printing the first and last six rows of the data we can see that there is a high disrepancy between the most popular categories and the least popular. We can also see that the categories are further divided by subcategories, where some subcategories are more popular the main categories. Here we can see that opinion.letters are more popular than opinion. We can see that news is the most popular category for the newspaper followed by sport and then closely by business. 
