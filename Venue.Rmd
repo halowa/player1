@@ -1,0 +1,33 @@
+---
+title: "VenueData"
+author: "Daniel Guo"
+date: "9/16/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(data.table)
+library(ggplot2)
+```
+
+## Overview
+
+
+This was a relatively simple dataset that looked at venues in Bournemouth, UK. There are a total of 100 observations among 4 variables as shown below. We can see by far that the most popular venue is the Hotel category with 11 occurances out of the 100 observations. Coffee shop follows closely. This area would most likely be categorized by the high number of hotel venues and as a result possibly a tourist hotspot. The output of the least popular venues seem to be specialized niche restaurants that thrive in environments where they are the only establishment to provide that form of service to their customers. We know that this data comes from venues in the UK, if there were additional data from other parts of the world we can also look at the popularity between them for example comparing Asia to the UK and the differences in the popular venues
+
+```{r cars, include = FALSE}
+data <-read.csv("BV.csv")
+glimpse(data)
+head(data)
+tail(data)
+unique(data$Venue.Category)
+data %>% group_by(Venue.Category) %>% count(sort = TRUE) -> sortbycategory
+head(sortbycategory)
+tail(sortbycategory)
+```
+
+
