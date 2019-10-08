@@ -1,0 +1,53 @@
+---
+title: "Election Data"
+author: "Daniel (Donglai) Guo"
+date: '2019-10-01'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+```
+
+
+```{r packages, include = FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(data.table)
+library(ggplot2)
+library(stringr)
+```
+
+## Introduction
+Election data was pulled from [fivethirtyeight](https://projects.fivethirtyeight.com/trump-approval-ratings/?ex_cid=rrpromo)
+
+
+```{r import, include = FALSE}
+# Loading the data 
+polls <- read.csv("approval_polllist.csv")
+topline <- read.csv("approval_topline.csv")
+glimpse(polls)
+glimpse(topline)
+class(polls$timestamp)
+
+#converting into workabble format
+polls$timestamp <- as.POSIXct(polls$timestamp, tz = '', format = "%H:%M:%OS %d %b %Y")
+topline$timestamp <- as.POSIXct(topline$timestamp, tz = '', format = "%H:%M:%OS %d %b %Y")
+class(polls$timestamp)
+
+```
+
+## Plots
+
+Here we plot the approval of the United States president Donald Trump as solid lines and the disapproval of him as dotted lines. We can easily see that as time went on, the disapproval of him increased dramatically that was similarly mirrored by a large drop in his approval ratings. 
+
+```{r pressure, echo=FALSE}
+polls %>% filter(pollster =="Gallup") %>% ggplot(aes( x = timestamp, y = approve)) + geom_line()
+topline %>% ggplot(aes ( x = timestamp, y = approve_estimate, col = subgroup)) + geom_line() + facet_wrap(~subgroup)
+
+#adding dissaproval 
+topline %>% ggplot() + geom_line(data = topline, aes(x = timestamp, y = approve_estimate, col = subgroup)) + geom_line(data = topline, aes(x = timestamp, y = disapprove_estimate, col = subgroup), linetype = "dashed") + facet_wrap(~subgroup)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
