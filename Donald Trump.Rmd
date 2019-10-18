@@ -20,34 +20,40 @@ library(stringr)
 ```
 
 ## Introduction
-Election data was pulled from [fivethirtyeight](https://projects.fivethirtyeight.com/trump-approval-ratings/?ex_cid=rrpromo)
+The current United States president Donald Trump has definitely made waves in the news since his time as president. My interests with this data was to see exactly the major changes in his approval ratings and how these change among voting groups. Election data was pulled from [fivethirtyeight](https://projects.fivethirtyeight.com/trump-approval-ratings/?ex_cid=rrpromo). Data was gathered from multiple sources that include both the approval ratings and disapproval ratings. Data was cleaned to fit the correct format to be plotted. 
 
 
 ```{r import, include = FALSE}
 # Loading the data 
-polls <- read.csv("approval_polllist.csv")
+#polls <- read.csv("approval_polllist.csv")
 topline <- read.csv("approval_topline.csv")
-glimpse(polls)
+#glimpse(polls)
 glimpse(topline)
-class(polls$timestamp)
+#class(polls$timestamp)
 
 #converting into workabble format
-polls$timestamp <- as.POSIXct(polls$timestamp, tz = '', format = "%H:%M:%OS %d %b %Y")
+#polls$timestamp <- as.POSIXct(polls$timestamp, tz = '', format = "%H:%M:%OS %d %b %Y")
 topline$timestamp <- as.POSIXct(topline$timestamp, tz = '', format = "%H:%M:%OS %d %b %Y")
-class(polls$timestamp)
+topline$modeldate <- as.POSIXct(topline$modeldate, tz = '', format = "%m/%d/%Y")
+#class(polls$timestamp)
+class(topline$modeldate)
 
+# polls$modeldate <- as.POSIXct(polls$modeldate, tz = '', format = "%m/%d/%Y")
+# levels(polls$subgroup)
 ```
 
 ## Plots
 
-Here we plot the approval of the United States president Donald Trump as solid lines and the disapproval of him as dotted lines. We can easily see that as time went on, the disapproval of him increased dramatically that was similarly mirrored by a large drop in his approval ratings. 
+Here we plot the approval of the United States president Donald Trump as solid lines and the disapproval of him as dotted lines. We can easily see that as time went on, the disapproval of him increased dramatically that was similarly mirrored by a large drop in his approval ratings. It is no surprise that at the time he won there was a strong public opinion of him. In the years following his election, the public saw the strong opinoins he has towards former ally and enemy countries. No doubt, Donald Trump as been a highly controversial figure. It is somewhat strange that the disapproval rating is not higher, as indicated by the red line. 
 
 ```{r pressure, echo=FALSE}
-polls %>% filter(pollster =="Gallup") %>% ggplot(aes( x = timestamp, y = approve)) + geom_line()
-topline %>% ggplot(aes ( x = timestamp, y = approve_estimate, col = subgroup)) + geom_line() + facet_wrap(~subgroup)
+topline %>% ggplot(aes ( x = timestamp, y = approve_estimate, col = subgroup)) + geom_line() + facet_wrap(~subgroup) + labs(title = "Approval Faceted by Voter Group", xlab = "Approval", ylab = "Time")
 
 #adding dissaproval 
-topline %>% ggplot() + geom_line(data = topline, aes(x = timestamp, y = approve_estimate, col = subgroup)) + geom_line(data = topline, aes(x = timestamp, y = disapprove_estimate, col = subgroup), linetype = "dashed") + facet_wrap(~subgroup)
+topline %>% ggplot() + geom_line(data = topline, aes(x = timestamp, y = approve_estimate, col = subgroup)) + geom_line(data = topline, aes(x = timestamp, y = disapprove_estimate, col = subgroup), linetype = "dashed") + facet_wrap(~subgroup) + labs(title = "Approval & Disapproval Faceted by Voter Group", xlab = "Approval", ylab = "Time")
+
+topline %>% filter(subgroup == "Voters") %>% ggplot() + geom_line(data = topline, aes(x = modeldate, y = approve_estimate), colour = "blue") + geom_line(data = topline, aes(x = modeldate, y = disapprove_estimate), linetype = "dashed", colour = "red") + labs(title = "Approval & Disapproval", xlab = "Percentage", ylab = "Time") 
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
