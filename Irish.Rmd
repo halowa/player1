@@ -7,9 +7,9 @@ output: html_document
                       
 ```
 
-## R Introduction 
+## Introduction 
 
-For this dataset I looked at 1.42 million news headlines in the Irish Times published from 1996 to the end of 2018: In this data set I will attempt to provided fundamental analysis on the data and make visual plots on any topics that I find interesting. 
+For this dataset I looked at 1.42 million news headlines in the Irish Times published from 1996 to the end of 2018: In this data set I will attempt to provided fundamental analysis on the data and make visual plots on performance of categories over time in the print run of this newspaper. 
 
 ```{r packages, include = FALSE}
 library(readr)
@@ -21,19 +21,20 @@ library(ggplot2)
 library(stringr)
 ```
 
-##data
-data can be found [here](https://www.kaggle.com/therohk/ireland-historical-news). I renamed irishtimes-date-text into irish1 and the other into irish2. 
+##Data
+The data can be found [here](https://www.kaggle.com/therohk/ireland-historical-news).
 
 ```{r data, include =FALSE}
 irish1 <- read.csv("irish1.csv")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 ```{r summary, include = FALSE}
 summary(irish1)
 searchterm <- c("business")
 irish1 %>% count(headline_category, sort = TRUE) -> sort_by_category
+#transforming into a Date class
+irish1 <- transform(irish1, publish_date1 = as.Date(as.character(publish_date), "%Y%m%d"))
 head(sort_by_category)
 tail(sort_by_category)
 #testing if the code work
@@ -46,29 +47,52 @@ mutate(irish1, cat = sub("\\..*", "", irish1$headline_category)) -> irish1edit
 #dont need this code atm
 #class(headline_general)
 
-#making a rough graph
-headline_general %>% ggplot(aes(x = sums1, y = Freq)) + geom_bar(stat="Identity", fill = "steelblue") + labs(x = "Cateogry", y = "Frequency")  -> graph1
-graph1
-
 #proper graph using ggplot
-irish1edit$publish_date <- as.Date(as.character(irish1edit$publish_date), format = "%Y%m%d")
-irish1edit %>% group_by(publish_date, cat) %>% count() %>% ggplot(aes(x= publish_date, y = n, color = cat)) + geom_line()+ geom_point() + scale_x_date(limits = as.Date(c('1996-01-02', '1997-02-01')))
-class(irish1edit$publish_date)
+
+irish1edit %>% group_by(publish_date1, cat) %>% count() -> counted_irish
+counted_irish %>% ggplot(aes(x= publish_date1, y = n, color = cat)) + geom_line() + scale_x_date(limits = as.Date(c('1996-01-01', '1996-12-31'))) + xlab ("Date") + ylab("Counts of Published Articles") + ggtitle("Category Performance in the First Year") -> graph_first_year
+
+counted_irish %>% ggplot(aes(x= publish_date1, y = n, color = cat)) + geom_line(alpha = 1/2) +  xlab("Date") + ylab("Counts of Published Articles") + ggtitle("Overall View of Category Performance in Irish Time's Entire Print Run") -> graph_overall
+
+sort_by_category %>% ggplot(aes(x = reorder(headline_category, -n), y = n)) + geom_col() + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + xlab("Categories") + ylab("Counts of Categories") + ggtitle("Graph of Categories from Most Popular to Least") -> graph_categories
 
 ##attempt 2 looking only at year and month 
 
-irish1edit1 <- irish1edit
-irish1edit1$publish_date <-format(irish1edit1$publish_date, format = "%Y-%m")
-head(irish1edit1)
-irish1edit1 %>% group_by(publish_date, cat) %>% count() -> irish_data_cleaned
-head(dput(irish_data_cleaned))
-
-#attempts to clean the data and brush up the limits. 
-irish_data_cleaned$publish_date1 <- as.Date(irish_data_cleaned$publish_date, format = "%Y-%m")
-irish_data_cleaned %>% ggplot(aes(x = publish_date, y = n, group = cat))  + geom_line(aes(color = cat)) + scale_x_discrete(name = "Publish Date", breaks = 10)
-#+ scale_x_date(date_breaks = "1 month", date_labels = "%Y-%m")
-class(irish_data_cleaned$publish_date)
-#+ xlim('1996-01', '1999-02')
+# irish1edit1 <- irish1edit
+# 
+# irish1edit1$publish_date <-format(irish1edit1$publish_date, format = "%Y-%m")
+# 
+# head(irish1edit1)
+# 
+# irish1edit1 %>% group_by(publish_date, cat) %>% count() -> irish_data_cleaned
+# 
+# head(dput(irish_data_cleaned))
+# 
+# #attempts to clean the data and brush up the limits. 
+# irish_data_cleaned$publish_date1 <- as.Date(irish_data_cleaned$publish_date, format = "%Y-%m")
+# irish_data_cleaned %>% ggplot(aes(x = publish_date, y = n, group = cat))  + geom_line(aes(color = cat)) 
+# 
+# #+ scale_x_discrete(name = "Publish Date", breaks = 10)
+# #+ scale_x_date(date_breaks = "1 month", date_labels = "%Y-%m")
+# class(irish_data_cleaned$publish_date)
+# #+ xlim('1996-01', '1999-02')
 ```
+
+
 ##Results
-Here we can see the overal summary of the data. By printing the first and last six rows of the data we can see that there is a high disrepancy between the most popular categories and the least popular. We can also see that the categories are further divided by subcategories, where some subcategories are more popular the main categories. Here we can see that opinion.letters are more popular than opinion. We can see that news is the most popular category for the newspaper followed by sport and then closely by business. 
+Here we can see the overal summary of the data. By printing the first and last six rows of the data we can see that there is a high disrepancy between the most popular categories and the least popular. The most popular categories being news, sport, business and interestingly enough opinions.letters as a subcategory is more popular than the main category of opinions in general. Looking at the least popular catories we see that there are many that were printed a fewer of 10 times in the entire print run of irish times. In our plot we can see that the categories heavily drop off after the top five. I believe that by combining all sub categories in the main ones we can have a clear understanding of performance of categories over time. 
+```{r plot, echo = TRUE}
+head(sort_by_category)
+tail(sort_by_category)
+graph_categories
+
+
+```
+
+We can see that news is the most popular category for the newspaper followed by sport and then closely by business. With the graphical output it's easy to see that news is the most popular in the year 1996 of when data was collected and also coincidentally the first year of publication. I attempt to depict the popularity of news articles over the entire course of the Irish Time's publication run. While there are spikes in categories such as sports as perhaps to major sporting events or those events that are particularly popular within the readers of Irish Times, the news category remains to be the most popular. 
+```{r plot2, echo = TRUE}
+graph_first_year
+graph_overall
+
+
+```
