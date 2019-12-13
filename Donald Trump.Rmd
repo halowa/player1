@@ -44,16 +44,19 @@ class(topline$modeldate)
 
 ## Plots
 
-Here we plot the approval of the United States president Donald Trump as solid lines and the disapproval of him as dotted lines. We can easily see that as time went on, the disapproval of him increased dramatically that was similarly mirrored by a large drop in his approval ratings. It is no surprise that at the time he won there was a strong public opinion of him. In the years following his election, the public saw the strong opinoins he has towards former ally and enemy countries. No doubt, Donald Trump as been a highly controversial figure. It is somewhat strange that the disapproval rating is not higher, as indicated by the red line. 
+Here we plot the approval of the United States president Donald Trump as solid lines and the disapproval of him as dotted lines. We can easily see that as time went on, the disapproval of him increased dramatically that was similarly mirrored by a large drop in his approval ratings. It is no surprise that at the time he won there was a strong public opinion of him. In the years following his election, the public saw the strong opinoins he has towards former ally and enemy countries. No doubt, Donald Trump as been a highly controversial figure. It is somewhat strange that the disapproval rating is not higher, as indicated by the red line. With additional data we could perhaps look at the data with respect to region of the United States, to see which states changed more drastically after he took office. 
 
 ```{r pressure, echo=FALSE}
-topline %>% ggplot(aes ( x = timestamp, y = approve_estimate, col = subgroup)) + geom_line() + facet_wrap(~subgroup) + labs(title = "Approval Faceted by Voter Group", xlab = "Approval", ylab = "Time")
+#topline %>% ggplot(aes ( x = timestamp, y = approve_estimate, col = subgroup)) + geom_line() + facet_wrap(~subgroup) + labs(title = "Approval Faceted by Voter Group", xlab = "Approval", ylab = "Time")
 
 #adding dissaproval 
 topline %>% ggplot() + geom_line(data = topline, aes(x = timestamp, y = approve_estimate, col = subgroup)) + geom_line(data = topline, aes(x = timestamp, y = disapprove_estimate, col = subgroup), linetype = "dashed") + facet_wrap(~subgroup) + labs(title = "Approval & Disapproval Faceted by Voter Group", xlab = "Approval", ylab = "Time")
 
-topline %>% filter(subgroup == "Voters") %>% ggplot() + geom_line(data = topline, aes(x = modeldate, y = approve_estimate), colour = "blue") + geom_line(data = topline, aes(x = modeldate, y = disapprove_estimate), linetype = "dashed", colour = "red") + labs(title = "Approval & Disapproval", xlab = "Percentage", ylab = "Time") 
-
+limit_1 <- as.Date(c('2018-01-01', '2019-01-01'))
+# topline %>% 
+#   filter(subgroup == "Voters") %>% 
+#   ggplot() + 
+#   geom_line(data = topline, aes(x = modeldate, y = approve_estimate), colour = "blue") + 
+#   geom_line(data = topline, aes(x = modeldate, y = disapprove_estimate), linetype = "dashed", colour = "red") + xlim(limit_1, format = "%Y-%m-%d") + labs(title = "Approval & Disapproval", xlab = "Percentage", ylab = "Time")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
