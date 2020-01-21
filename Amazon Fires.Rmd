@@ -1,0 +1,108 @@
+---
+title: "Amazon Fire Frequency Report"
+author: "Daniel (Donglai) Guo"
+date: '2019-12-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+```
+
+
+```{r packages, include=FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(data.table)
+library(ggplot2)
+library(stringr)
+library(ruler)
+```
+
+## Introduction
+
+It is no surprise that the world undergoing climate changing with each passing day. Scientists have devleoped quantitative ways of measuring this change. Be it with the rising annual sea levels, or the rate of which ice melts in the Poles, these types of measurements provide meaningful insight as to how fast the world is changing and also areas of concern to pay attention to. Through this analysis I hope to provide insight on the rate at which the world is changing and the urgency of the current situation. As with other projects that I've done the data can be found on [kaggle](https://www.kaggle.com/gustavomodelli/forest-fires-in-brazil) if you would like to follow along. This particular dataset explores the changes in fires within Brazil. With some cleaning that can be found within the code, 3 states within the data set have been recorded twice Mato Grosso, Paraiba, and one state recorded three times Rio. These were removed and isodlated while I focus on the majorty of the data and figure out a proper way of separating these multiple recorded events. 
+
+```{r cars}
+read.csv("amazon.csv") -> amazon
+head(amazon)
+summary(amazon)
+amazon %>% 
+  group_by(state) %>% 
+  count() %>% 
+  arrange(desc(n))
+#changing names to english
+amazon %>% mutate(month = if_else(month == "Abril", "Apr", if_else(month == "Agosto", "Aug", if_else(month == "Dezembro", "Dec", if_else(month == "Fevereiro", "Feb", if_else(month == "Janeiro", "Jan", if_else(month == "Julho", "Jul", if_else(month == "Junho", "Jun", if_else(month == "Maio", "May", if_else(month == "Setembro", "Sep", if_else(month == "Novembro", "Nov", if_else(month == "Outubro", "Oct", "Mar")))))))))))) -> amazon
+#finding extra jan Obs
+amazon %>% filter(month == "Jan") %>% group_by(state) %>% count(state) -> found_additional
+found_additional
+#remove the obs
+amazon %>% filter(state == "Alagoas", month == "Jan")
+amazon1 <- amazon[-260,]
+table(amazon1$month)
+#Transform date column into POSIXct class
+class(amazon1$date)
+amazon1$date1 <- as.POSIXct(amazon1$date)
+class(amazon1$date1)
+#Separate duplciate states into their own 
+amazon1 %>% 
+  group_by(state) %>% 
+  count() %>% 
+  arrange(desc(n))
+normal_amazon <- amazon1 %>% 
+  filter(state != "Rio", state != "Mato Grosso", state != "Paraiba")
+
+multiple_amazon <- amazon1 %>% 
+  filter(state %in% c("Rio", "Mato Grosso", "Paraiba"))
+#split the multiple states
+separate_amazon <- multiple_amazon %>% 
+  mutate(nums = if_else(state == "Mato Grosso", 0, if_else(state == "Paraiba", 1, 2))) %>% 
+  transform(counter = ave(nums, rleid(state,nums), FUN = seq_along)) %>%
+  unite(state, counter, col = "state", sep = " ") %>% 
+  mutate(number = round(number))
+
+#sep_amazon <- distinct(as.character(multiple_amazon$state), multiple_amazon$date1)
+class(multiple_amazon$state)
+#Analyze fires
+normal_amazon$number1 <- round(normal_amazon$number)
+
+table(normal_amazon$state)
+normal_amazon$state <- as.character(normal_amazon$state)
+normal_amazon %>% mutate(state = if_else(state == "Par\xe1", "Parxe", state))
+
+fire_by_year_by_state <- normal_amazon %>% 
+  group_by(state, year) %>% 
+  summarize(TotalFires = sum(number1)) %>%
+  ggplot(aes(x = year, y = TotalFires)) + geom_point() + geom_smooth(method = "lm") + facet_wrap(vars(state))
+
+fire_by_year_by_state
+
+Acre_set <- normal_amazon %>% 
+  filter(state =="Acre") %>% group_by(year) %>% summarize(TotalFires = sum(number1))
+ 
+2*sd(Acre_set$TotalFires) -> twicesdAcre
+median(Acre_set$TotalFires)
+Acre_set %>% mutate(outlier = if_else(abs(TotalFires - median(TotalFires)) > 2*sd(TotalFires), 1, 0)) -> Acre_set
+
+Acre_set
+
+lm(formula = TotalFires ~ year, data = Acre_set) -> acre_lm
+
+Acre_set  %>% ggplot(aes( x = year, y = TotalFires)) + geom_point() + geom_smooth(method = "lm")
+summary(acre_lm)
+par(mfrow = c(2,2))
+plot(acre_lm)
+abline(lm(TotalFires~year, data = Acre_set))
+```
+
+## Results
+
+The data more or less reinforces the problems that scientists outline that are currently expressed by scientists. with the the global increases in temperatures, we can see that there is a rise on average of fire occurance among most states in Brazil. As shown by the fire plots among most of the states found within Brazil, a linear model shows that occuarances of fire have been on the upward trend within recent years with some states feeling the effect more so than others. I took a closer look at the plots of state Acre to see if there was any issues with the data and found none. 
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
